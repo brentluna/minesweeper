@@ -23,3 +23,20 @@
   position: relative;
   text-align: center;
 }
+
+.explored {
+  background: white;
+}
+
+.bomb {
+  background: red;
+}
+
+.container {
+  display: flex;
+  flex-direction: column;
+}
+
+h1 {
+  text-align: center;
+}

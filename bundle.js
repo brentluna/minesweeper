@@ -183,25 +183,40 @@
 	var cachedSetTimeout;
 	var cachedClearTimeout;
 	
+	function defaultSetTimout() {
+	    throw new Error('setTimeout has not been defined');
+	}
+	function defaultClearTimeout () {
+	    throw new Error('clearTimeout has not been defined');
+	}
 	(function () {
 	    try {
-	        cachedSetTimeout = setTimeout;
-	    } catch (e) {
-	        cachedSetTimeout = function () {
-	            throw new Error('setTimeout is not defined');
+	        if (typeof setTimeout === 'function') {
+	            cachedSetTimeout = setTimeout;
+	        } else {
+	            cachedSetTimeout = defaultSetTimout;
 	        }
+	    } catch (e) {
+	        cachedSetTimeout = defaultSetTimout;
 	    }
 	    try {
-	        cachedClearTimeout = clearTimeout;
-	    } catch (e) {
-	        cachedClearTimeout = function () {
-	            throw new Error('clearTimeout is not defined');
+	        if (typeof clearTimeout === 'function') {
+	            cachedClearTimeout = clearTimeout;
+	        } else {
+	            cachedClearTimeout = defaultClearTimeout;
 	        }
+	    } catch (e) {
+	        cachedClearTimeout = defaultClearTimeout;
 	    }
 	} ())
 	function runTimeout(fun) {
 	    if (cachedSetTimeout === setTimeout) {
 	        //normal enviroments in sane situations
+	        return setTimeout(fun, 0);
+	    }
+	    // if setTimeout wasn't available but was latter defined
+	    if ((cachedSetTimeout === defaultSetTimout || !cachedSetTimeout) && setTimeout) {
+	        cachedSetTimeout = setTimeout;
 	        return setTimeout(fun, 0);
 	    }
 	    try {
@@ -222,6 +237,11 @@
 	function runClearTimeout(marker) {
 	    if (cachedClearTimeout === clearTimeout) {
 	        //normal enviroments in sane situations
+	        return clearTimeout(marker);
+	    }
+	    // if clearTimeout wasn't available but was latter defined
+	    if ((cachedClearTimeout === defaultClearTimeout || !cachedClearTimeout) && clearTimeout) {
+	        cachedClearTimeout = clearTimeout;
 	        return clearTimeout(marker);
 	    }
 	    try {
@@ -21455,7 +21475,7 @@
 	  function Game(props) {
 	    _classCallCheck(this, Game);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Game).call(this, props));
+	    var _this = _possibleConstructorReturn(this, (Game.__proto__ || Object.getPrototypeOf(Game)).call(this, props));
 	
 	    var startBoard = new MineSweeper.Board(9, 6);
 	    _this.state = { board: startBoard };
@@ -21541,7 +21561,7 @@
 	  function Board(props) {
 	    _classCallCheck(this, Board);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Board).call(this, props));
+	    var _this = _possibleConstructorReturn(this, (Board.__proto__ || Object.getPrototypeOf(Board)).call(this, props));
 	
 	    _this.renderRows = _this.renderRows.bind(_this);
 	    _this.renderTiles = _this.renderTiles.bind(_this);
@@ -21617,7 +21637,7 @@
 	  function Tile(props) {
 	    _classCallCheck(this, Tile);
 	
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Tile).call(this, props));
+	    var _this = _possibleConstructorReturn(this, (Tile.__proto__ || Object.getPrototypeOf(Tile)).call(this, props));
 	
 	    _this.handleClick = _this.handleClick.bind(_this);
 	    return _this;
@@ -21632,21 +21652,30 @@
 	  }, {
 	    key: 'render',
 	    value: function render() {
+	
+	      var cName = '';
 	      var tileStyle = null;
 	      var currTile = this.props.tile;
 	      if (currTile.bombed && currTile.explored) {
 	        tileStyle = 'b';
+	        cName = 'bomb';
 	      } else if (currTile.flagged) {
 	        tileStyle = 'f';
+	        cName = 'flag';
 	      } else if (currTile.explored) {
 	        tileStyle = currTile.adjacentBombCount();
+	        if (tileStyle === 0) {
+	          tileStyle = ' ';
+	        }
+	        cName = 'explored';
 	      } else {
 	        tileStyle = ' ';
 	      }
-	
+	      cName = 'tile ' + cName;
+	      console.log(cName);
 	      return _react2.default.createElement(
 	        'div',
-	        { className: 'tile', onClick: this.handleClick },
+	        { className: cName, onClick: this.handleClick },
 	        tileStyle
 	      );
 	    }
